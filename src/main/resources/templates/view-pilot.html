@@ -13,8 +13,9 @@
 		<h3 th:text="'Name : ' + ${pilot.name}"></h3>
 		<h3 th:text="'Fly Hour : ' + ${pilot.flyHour}"></h3>
 		<h3 th:text="${pilot.flyHour} >= 100 ? 'Status: Pilot Senior' : 'Status: Pilot Junior'"></h3>
-		<a th:href="@{/flight/add/{licenseNumber}(licenseNumber=${pilot.licenseNumber})}">Add Flight</a>
-		
+		<form th:action="@{/flight/add/} + ${pilot.licenseNumber}" method="GET">
+			<button type="submit">Add Flight</button>
+		</form>
 		<form th:action="@{/pilot/update/} + ${pilot.id}">
 			<button type="submit">Update Pilot</button>
 		</form>

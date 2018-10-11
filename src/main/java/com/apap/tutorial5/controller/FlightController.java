@@ -1,24 +1,21 @@
 package com.apap.tutorial5.controller;
 
-import com.apap.tutorial5.model.FlightModel;
-import com.apap.tutorial5.model.PilotModel;
-import com.apap.tutorial5.service.FlightService;
-import com.apap.tutorial5.service.FlightServiceImpl;
-import com.apap.tutorial5.service.PilotService;
-import com.apap.tutorial5.repository.FlightDb;
-
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.apap.tutorial5.model.FlightModel;
+import com.apap.tutorial5.model.PilotModel;
+import com.apap.tutorial5.repository.FlightDb;
+import com.apap.tutorial5.service.FlightService;
+import com.apap.tutorial5.service.PilotService;
 
 /**
  * 
@@ -40,31 +37,38 @@ public class FlightController {
 		FlightModel flight = new FlightModel();
 		PilotModel pilot = pilotService.getPilotDetailByLicenseNumber(licenseNumber);
 		flight.setPilot(pilot);
-		
+		model.addAttribute("pilot", pilot);
 		model.addAttribute("flight", flight);
+//		PilotModel pilotdummy = new PilotModel();
+//		List<FlightModel> listflight = new ArrayList<FlightModel>();
+//		FlightModel flight = new FlightModel();
+//		listflight.add(flight);
+//		pilotdummy.setPilotFlight(listflight);
+//		
+//		model.addAttribute("pilotdummy", pilotdummy);
+//		model.addAttribute("licenseNumber", licenseNumber);
 		return "addFlight";
 	}
 	
-	@RequestMapping(value = "/flight/add", method = RequestMethod.POST)
-	private String addFlightSubmit(@ModelAttribute FlightModel flight) {
-		flightService.addFlight(flight);;
+	@RequestMapping(value="/flight/add/{licenseNumber}", method = RequestMethod.POST, params={"addRow"})
+	public String addRow(@PathVariable(value="licenseNumber") String licenseNumber, 
+			@ModelAttribute PilotModel pilotdummy, Model model) {
+		FlightModel newflight = new FlightModel();
+		pilotdummy.getPilotFlight().add(newflight);
+		
+		model.addAttribute("pilot", pilotdummy);
+	    return "addFlight";
+	}
+	
+	@RequestMapping(value = "/flight/add/{licenseNumber}", method = RequestMethod.POST, params= {"submit"})
+	private String addFlightSubmit(@PathVariable(value = "licenseNumber") String licenseNumber, @ModelAttribute PilotModel pilotdummy) {
+		PilotModel pilottujuan = pilotService.getPilotDetailByLicenseNumber(licenseNumber);
+		for (FlightModel flightGonnaBeAdded : pilotdummy.getPilotFlight()) {
+			flightService.addFlight(flightGonnaBeAdded);
+		}
 		return "add";
 	}
 	
-	@RequestMapping(value="/flightformmng", params={"addRow"})
-	public String addRow(final PilotModel pilot, final BindingResult bindingResult) {
-	    pilot.getPilotFlight().add(new FlightModel());
-	    return "seedstartermng";
-	}
-
-	@RequestMapping(value="/flightformmng", params={"removeRow"})
-	public String removeRow(
-	        final SeedStarter seedStarter, final BindingResult bindingResult, 
-	        final HttpServletRequest req) {
-	    final Integer rowId = Integer.valueOf(req.getParameter("removeRow"));
-	    seedStarter.getRows().remove(rowId.intValue());
-	    return "seedstartermng";
-	}
 	
 	@RequestMapping(value = "/flight/delete/", method = RequestMethod.POST)
 	private String deleteFlight(@ModelAttribute PilotModel pilot, Model model) {
